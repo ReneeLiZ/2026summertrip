@@ -1,0 +1,70 @@
+# 将 2026summer.html 发布为站点根路径的 index.html，
+# 并从仓库 Secrets 注入 Supabase（仓库里可不保存真实 anon key）。
+#
+# 使用前：
+# 1. GitHub 仓库 → Settings → Secrets and variables → Actions
+#    新建 Repository secrets：SUPABASE_URL、SUPABASE_ANON_KEY
+# 2. Settings → Pages → Build and deployment → Source 选「GitHub Actions」
+# 3. 推送本 workflow 到默认分支（如 main）
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: ["main", "master"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 准备站点并注入 Supabase 配置
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          mkdir -p _site
+          cp 2026summer.html _site/index.html
+          python3 << 'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          p = Path("_site/index.html")
+          text = p.read_text(encoding="utf-8")
+          url = os.environ.get("SUPABASE_URL", "").strip()
+          key = os.environ.get("SUPABASE_ANON_KEY", "").strip()
+          text = text.replace(
+              'var SUPABASE_URL = "__INJECT_SUPABASE_URL__";',
+              "var SUPABASE_URL = " + json.dumps(url) + ";",
+              1,
+          )
+          text = text.replace(
+              'var SUPABASE_ANON_KEY = "__INJECT_SUPABASE_ANON_KEY__";',
+              "var SUPABASE_ANON_KEY = " + json.dumps(key) + ";",
+              1,
+          )
+          p.write_text(text, encoding="utf-8")
+          PY
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
