@@ -121,6 +121,19 @@
       opacity: 0.72;
     }
 
+    .site-header .cloud-status {
+      margin: 0.4rem 0 0;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.68;
+      line-height: 1.35;
+    }
+
+    .site-header .cloud-status.cloud-on {
+      opacity: 0.88;
+    }
+
     .map-panels {
       position: fixed;
       top: 86px;
@@ -693,6 +706,7 @@
     <header class="glass-card site-header">
       <h1>2026 夏季 旅行✈️ 🇯🇵 甜甜</h1>
       <p class="tagline">地图全屏背景 · 资料与手帐在侧栏</p>
+      <p class="cloud-status" id="cloud-status">仅本机缓存（未配置云端）</p>
     </header>
 
     <aside class="map-panels" aria-label="地图上的浮层面板">
@@ -771,13 +785,25 @@
       </div>
     </aside>
 
-    <footer class="site-footer">数据保存在本机浏览器 · localStorage</footer>
+    <footer class="site-footer" id="site-footer">本机 localStorage 备份 · 配置 Supabase 后多人共享</footer>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     (function () {
       var STORAGE_KEY = "jp-2026-summer-interactive-v2";
+
+      /* 云端（Supabase）：
+         · 本地预览：把下面两行里的占位符改成你的项目 URL 和 anon key（不要带 /rest/v1）。
+         · 公开仓库又不想把 key 写进代码：保持 __INJECT_*__ 占位符，在 GitHub 仓库 Settings → Secrets
+           添加 SUPABASE_URL、SUPABASE_ANON_KEY，用 Actions 部署（见 .github/workflows/deploy-pages.yml），
+           发布出来的 index.html 会自动替换成真实值。
+         · anon key 本身设计为可出现在浏览器里，防滥用主要靠 RLS；此前去掉填写内容是为避免错误 URL 和误提交到公开记录。 */
+      var SUPABASE_URL = "__INJECT_SUPABASE_URL__";
+      var SUPABASE_ANON_KEY = "__INJECT_SUPABASE_ANON_KEY__";
+
+      var cloudEnabled = false;
+      var cloudApplying = false;
 
       var REMOTE_GEOJSON =
         "https://cdn.jsdelivr.net/gh/dataofjapan/land@master/japan.geojson";
@@ -1042,6 +1068,214 @@
         } catch (e) {}
       }
 
+      function setCloudStatus(text, isOn) {
+        var el = document.getElementById("cloud-status");
+        if (!el) return;
+        el.textContent = text;
+        el.classList.toggle("cloud-on", !!isOn);
+      }
+
+      function setFooterCloudNote(text) {
+        var f = document.getElementById("site-footer");
+        if (f) f.textContent = text;
+      }
+
+      function getSupabaseRestRoot() {
+        var u = (SUPABASE_URL || "").trim().replace(/\/+$/, "");
+        if (!u) return "";
+        if (/\/rest\/v1$/i.test(u)) return u;
+        return u + "/rest/v1";
+      }
+
+      function sbHeaders(jsonBody) {
+        var h = {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY
+        };
+        if (jsonBody) h["Content-Type"] = "application/json";
+        return h;
+      }
+
+      function sbGetJSON(path) {
+        var root = getSupabaseRestRoot();
+        return fetch(root + "/" + path, {
+          headers: sbHeaders(false)
+        }).then(function (r) {
+          if (!r.ok) return Promise.reject(new Error("GET " + path + " " + r.status));
+          return r.json();
+        });
+      }
+
+      function sbPostJSON(path, rows, merge) {
+        var root = getSupabaseRestRoot();
+        var headers = sbHeaders(true);
+        if (merge) headers["Prefer"] = "resolution=merge-duplicates";
+        return fetch(root + "/" + path, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(rows)
+        }).then(function (r) {
+          if (!r.ok) return Promise.reject(new Error("POST " + path + " " + r.status));
+        });
+      }
+
+      function sbDeleteEq(table, id) {
+        var root = getSupabaseRestRoot();
+        return fetch(root + "/" + table + "?id=eq." + encodeURIComponent(id), {
+          method: "DELETE",
+          headers: sbHeaders(false)
+        }).then(function (r) {
+          if (!r.ok) return Promise.reject(new Error("DELETE " + table + " " + r.status));
+        });
+      }
+
+      function sbPatchEq(table, id, patch) {
+        var root = getSupabaseRestRoot();
+        return fetch(root + "/" + table + "?id=eq." + encodeURIComponent(id), {
+          method: "PATCH",
+          headers: sbHeaders(true),
+          body: JSON.stringify(patch)
+        }).then(function (r) {
+          if (!r.ok) return Promise.reject(new Error("PATCH " + table + " " + r.status));
+        });
+      }
+
+      async function cloudRemoteHasAnyRow() {
+        var p = await sbGetJSON("planner_items?select=id&limit=1");
+        if (p.length) return true;
+        var m = await sbGetJSON("map_pins?select=id&limit=1");
+        if (m.length) return true;
+        var c = await sbGetJSON("info_clippings?select=id&limit=1");
+        return c.length > 0;
+      }
+
+      async function cloudPullApply() {
+        var planners = await sbGetJSON("planner_items?select=*&order=updated_at.asc");
+        var pins = await sbGetJSON("map_pins?select=*&order=sort_order.asc");
+        var clips = await sbGetJSON("info_clippings?select=*&order=updated_at.desc");
+        cloudApplying = true;
+        try {
+          state.hanabi = [];
+          state.matsuri = [];
+          state.other = [];
+          planners.forEach(function (row) {
+            var it = { id: row.id, text: row.body || "" };
+            if (row.category === "hanabi") state.hanabi.push(it);
+            else if (row.category === "matsuri") state.matsuri.push(it);
+            else if (row.category === "other") state.other.push(it);
+          });
+          state.mapPins = pins.map(function (p) {
+            return {
+              id: p.id,
+              place: p.place,
+              note: p.note || "",
+              lat: p.lat,
+              lng: p.lng
+            };
+          });
+          state.infoClippings = clips.map(function (c) {
+            return {
+              id: c.id,
+              title: c.title || "",
+              url: c.url || "",
+              note: c.note || ""
+            };
+          });
+        } finally {
+          cloudApplying = false;
+        }
+      }
+
+      async function cloudSeedFromCurrentState() {
+        var prow = [];
+        ["hanabi", "matsuri", "other"].forEach(function (cat) {
+          state[cat].forEach(function (item) {
+            prow.push({ id: item.id, category: cat, body: item.text });
+          });
+        });
+        if (prow.length) await sbPostJSON("planner_items", prow, true);
+        if (state.mapPins.length) {
+          var mrows = state.mapPins.map(function (p, i) {
+            return {
+              id: p.id,
+              place: p.place,
+              note: p.note || "",
+              lat: p.lat,
+              lng: p.lng,
+              sort_order: i
+            };
+          });
+          await sbPostJSON("map_pins", mrows, true);
+        }
+        if (state.infoClippings.length) {
+          var crows = state.infoClippings.map(function (c) {
+            return {
+              id: c.id,
+              title: c.title || "",
+              url: c.url || "",
+              note: c.note || ""
+            };
+          });
+          await sbPostJSON("info_clippings", crows, true);
+        }
+      }
+
+      async function cloudSyncAllPinSortOrder() {
+        if (!cloudEnabled || cloudApplying) return;
+        for (var i = 0; i < state.mapPins.length; i++) {
+          await sbPatchEq("map_pins", state.mapPins[i].id, { sort_order: i });
+        }
+      }
+
+      async function cloudPollTick() {
+        if (!cloudEnabled || cloudApplying) return;
+        try {
+          await cloudPullApply();
+          renderLists();
+          renderPinList();
+          renderInfoClippings();
+          refreshRouteOnMap();
+          saveState();
+        } catch (e) {
+          console.warn("云端拉取失败", e);
+        }
+      }
+
+      function isCloudConfigured() {
+        var u = (SUPABASE_URL || "").trim();
+        var k = (SUPABASE_ANON_KEY || "").trim();
+        if (!u || !k) return false;
+        if (u.indexOf("__INJECT_") !== -1 || k.indexOf("__INJECT_") !== -1) return false;
+        return true;
+      }
+
+      async function initCloudIfConfigured() {
+        if (!isCloudConfigured()) {
+          setCloudStatus("仅本机缓存（未配置云端）", false);
+          setFooterCloudNote("本机 localStorage · 配置 Supabase 后多人共享");
+          return;
+        }
+        cloudEnabled = true;
+        setCloudStatus("正在连接 Supabase…", true);
+        try {
+          var has = await cloudRemoteHasAnyRow();
+          if (has) {
+            await cloudPullApply();
+          } else {
+            await cloudSeedFromCurrentState();
+          }
+          saveState();
+          setCloudStatus("云端已连接 · 约每 12 秒同步他人更新", true);
+          setFooterCloudNote("手帐 / 路线 / 收集夹已与 Supabase 同步（匿名可写，注意滥用风险）");
+          setInterval(cloudPollTick, 12000);
+        } catch (e) {
+          cloudEnabled = false;
+          console.error(e);
+          setCloudStatus("云端连接失败（仅本机）", false);
+          setFooterCloudNote("云端不可用 · 本机 localStorage 备份");
+        }
+      }
+
       function escapeHtml(s) {
         var d = document.createElement("div");
         d.textContent = s == null ? "" : String(s);
@@ -1117,6 +1351,15 @@
               editingClipId = null;
               saveState();
               renderInfoClippings();
+              if (cloudEnabled && !cloudApplying) {
+                sbPatchEq("info_clippings", clip.id, {
+                  title: nt,
+                  url: href,
+                  note: nn
+                }).catch(function (e) {
+                  console.warn(e);
+                });
+              }
             });
             var cancel = document.createElement("button");
             cancel.type = "button";
@@ -1186,6 +1429,11 @@
             });
             saveState();
             renderInfoClippings();
+            if (cloudEnabled && !cloudApplying) {
+              sbDeleteEq("info_clippings", clip.id).catch(function (e) {
+                console.warn(e);
+              });
+            }
           });
           acts.appendChild(ed);
           acts.appendChild(del);
@@ -1209,13 +1457,23 @@
           window.alert("请至少填写标题、链接或信息中的一项。");
           return;
         }
+        var clipId = uid();
         state.infoClippings.unshift({
-          id: uid(),
+          id: clipId,
           title: title,
           url: url,
           note: note
         });
         saveState();
+        if (cloudEnabled && !cloudApplying) {
+          sbPostJSON(
+            "info_clippings",
+            [{ id: clipId, title: title, url: url, note: note }],
+            true
+          ).catch(function (e) {
+            console.warn(e);
+          });
+        }
         document.getElementById("clip-title-input").value = "";
         document.getElementById("clip-url-input").value = "";
         document.getElementById("clip-note-input").value = "";
@@ -1363,6 +1621,11 @@
         saveState();
         renderPinList();
         refreshRouteOnMap();
+        if (cloudEnabled && !cloudApplying) {
+          cloudSyncAllPinSortOrder().catch(function (e) {
+            console.warn(e);
+          });
+        }
       }
 
       function removePin(id) {
@@ -1372,19 +1635,50 @@
         saveState();
         renderPinList();
         refreshRouteOnMap();
+        if (cloudEnabled && !cloudApplying) {
+          sbDeleteEq("map_pins", id)
+            .then(function () {
+              return cloudSyncAllPinSortOrder();
+            })
+            .catch(function (e) {
+              console.warn(e);
+            });
+        }
       }
 
       function addMapPin(place, note, lat, lng) {
+        var pinId = uid();
+        var pNote = (note || "").trim();
+        var pPlace = place.trim();
         state.mapPins.push({
-          id: uid(),
-          place: place.trim(),
-          note: (note || "").trim(),
+          id: pinId,
+          place: pPlace,
+          note: pNote,
           lat: lat,
           lng: lng
         });
         saveState();
         renderPinList();
         refreshRouteOnMap();
+        if (cloudEnabled && !cloudApplying) {
+          var i = state.mapPins.length - 1;
+          sbPostJSON(
+            "map_pins",
+            [
+              {
+                id: pinId,
+                place: pPlace,
+                note: pNote,
+                lat: lat,
+                lng: lng,
+                sort_order: i
+              }
+            ],
+            true
+          ).catch(function (e) {
+            console.warn(e);
+          });
+        }
       }
 
       function geocodeJapan(place) {
@@ -1430,9 +1724,15 @@
       function addItem(cat, text) {
         var t = (text || "").trim();
         if (!t) return;
-        state[cat].push({ id: uid(), text: t });
+        var nid = uid();
+        state[cat].push({ id: nid, text: t });
         saveState();
         renderLists();
+        if (cloudEnabled && !cloudApplying) {
+          sbPostJSON("planner_items", [{ id: nid, category: cat, body: t }], true).catch(function (e) {
+            console.warn(e);
+          });
+        }
       }
 
       function removeItem(cat, id) {
@@ -1441,6 +1741,11 @@
         });
         saveState();
         renderLists();
+        if (cloudEnabled && !cloudApplying) {
+          sbDeleteEq("planner_items", id).catch(function (e) {
+            console.warn(e);
+          });
+        }
       }
 
       function updateItem(cat, id, text) {
@@ -1450,6 +1755,11 @@
         });
         saveState();
         renderLists();
+        if (cloudEnabled && !cloudApplying) {
+          sbPatchEq("planner_items", id, { body: t }).catch(function (e) {
+            console.warn(e);
+          });
+        }
       }
 
       function renderList(cat, elId) {
@@ -1833,7 +2143,8 @@
         finishMapUiSetup();
       }
 
-      function start() {
+      async function start() {
+        await initCloudIfConfigured();
         renderLists();
         renderPinList();
         renderInfoClippings();
@@ -1867,7 +2178,9 @@
         }
       }
 
-      start();
+      start().catch(function (err) {
+        console.error(err);
+      });
     })();
   </script>
 </body>
