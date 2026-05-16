@@ -213,6 +213,33 @@
       max-width: 90vw;
     }
 
+    .icon-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0.15rem 0.25rem;
+      font-size: 0.95rem;
+      line-height: 1;
+      opacity: 0.75;
+    }
+
+    .icon-btn:hover { opacity: 1; }
+
+    .pin-row {
+      cursor: pointer;
+    }
+
+    .pin-row.is-active {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .pin-row .pin-time {
+      font-size: 0.65rem;
+      font-weight: 700;
+      opacity: 0.75;
+      margin-bottom: 0.1rem;
+    }
+
     .leaflet-container {
       font-family: inherit;
       background: #e8e8e8;
@@ -340,133 +367,6 @@
     .btn:hover { background: rgba(0, 0, 0, 0.85); color: #fff; border-color: transparent; }
 
     .btn-block { width: 100%; text-align: center; }
-
-    .planner h2 {
-      margin: 0 0 0.85rem;
-      font-family: "Libre Baskerville", Georgia, serif;
-      font-size: 1rem;
-      text-transform: none;
-      letter-spacing: 0.04em;
-      padding-bottom: 0.45rem;
-    }
-
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0;
-      border: 1px solid rgba(0, 0, 0, 0.15);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 0.75rem;
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    .tab {
-      flex: 1 1 auto;
-      min-width: 90px;
-      padding: 0.55rem 0.4rem;
-      border: none;
-      border-right: 1px solid rgba(0, 0, 0, 0.12);
-      background: transparent;
-      font-family: inherit;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-    }
-
-    .tab:last-child { border-right: none; }
-
-    .tab[aria-selected="true"] {
-      background: rgba(0, 0, 0, 0.82);
-      color: #fff;
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    .item-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 12px;
-      min-height: 120px;
-      max-height: 240px;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    .item-row {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.45rem 0.5rem;
-      border-bottom: 1px solid #ddd;
-      font-size: 0.88rem;
-      letter-spacing: 0.03em;
-    }
-
-    .item-row:last-child { border-bottom: none; }
-
-    .item-row:hover { background: var(--track); }
-
-    .item-text {
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
-    }
-
-    .item-text[contenteditable="true"] {
-      outline: 2px solid #000;
-      outline-offset: 1px;
-    }
-
-    .icon-btn {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      padding: 0.15rem 0.25rem;
-      font-size: 0.95rem;
-      line-height: 1;
-      opacity: 0.75;
-    }
-
-    .icon-btn:hover { opacity: 1; }
-
-    .supplement {
-      margin-top: 0.75rem;
-    }
-
-    .supplement h3 {
-      margin: 0 0 0.5rem;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .supp-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: stretch;
-    }
-
-    .supp-row input,
-    .supp-row select {
-      font-family: inherit;
-      font-size: 0.85rem;
-      padding: 0.45rem 0.5rem;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      background: rgba(255, 255, 255, 0.65);
-      letter-spacing: 0.04em;
-      border-radius: 10px;
-    }
-
-    .supp-row input { flex: 1 1 140px; min-width: 0; }
-
-    .supp-row select { min-width: 130px; }
 
     .route-panel .hint {
       font-size: 0.75rem;
@@ -705,8 +605,7 @@
   <div class="ui-layer">
     <header class="glass-card site-header" style="width: 500px">
       <h1 >2026夏季旅行✈️ 🇯🇵</h1>
-      <p>Owen & Renee<p>
-      <p class="tagline">地图全屏背景 · 资料与手帐在侧栏</p>
+      <p class="tagline">地图全屏背景 · 侧栏资料与路线</p>
       <p class="cloud-status" id="cloud-status">仅本机缓存（未配置云端）</p>
     </header>
 
@@ -724,8 +623,10 @@
 
       <div class="glass-card panel route-panel">
         <h2>路线标记</h2>
-        <p class="hint">输入地点与备注，将按添加顺序在地图上标点并用线连接成路线（可调整顺序）。地点通过 OpenStreetMap 检索，请尽量写日本境内的具体地名。</p>
+        <p class="hint">填写时间与地点，将按顺序显示在列表并标到地图上。点击列表项可与地图联动选中。</p>
         <div class="route-form">
+          <label for="route-time">时间</label>
+          <input type="text" id="route-time" maxlength="40" placeholder="例：7/10 或 7月10日 14:00" autocomplete="off" />
           <label for="route-place">地点</label>
           <input type="text" id="route-place" maxlength="120" placeholder="例：京都站 / 大阪城公园 / 渋谷" autocomplete="off" />
           <label for="route-note">内容 / 备注</label>
@@ -738,7 +639,7 @@
       </div>
     </aside>
 
-    <aside class="handbook-stack" aria-label="手帐与收集夹">
+    <aside class="handbook-stack" aria-label="资料收集夹">
       <section class="glass-card panel collect-panel" aria-labelledby="collect-heading">
         <h2 id="collect-heading">资料与链接</h2>
         <p class="hint">把攻略、订票、博客等链接和摘录集中收藏，刷新后仍会保留。</p>
@@ -753,37 +654,6 @@
         </div>
         <ul class="clip-list" id="clip-list" aria-label="已保存的资料列表"></ul>
       </section>
-
-      <div class="glass-card panel planner">
-        <h2>✨ OWEN Renee的行程手帐 ✨</h2>
-        <div class="tabs" role="tablist">
-          <button type="button" class="tab" role="tab" data-cat="hanabi" aria-selected="true">🎆 火花大会</button>
-          <button type="button" class="tab" role="tab" data-cat="matsuri" aria-selected="false">🎌 文化祭</button>
-          <button type="button" class="tab" role="tab" data-cat="other" aria-selected="false">🗾 其他</button>
-        </div>
-        <div id="panel-hanabi" class="tab-panel active" role="tabpanel">
-          <ul class="item-list" id="list-hanabi"></ul>
-        </div>
-        <div id="panel-matsuri" class="tab-panel" role="tabpanel">
-          <ul class="item-list" id="list-matsuri"></ul>
-        </div>
-        <div id="panel-other" class="tab-panel" role="tabpanel">
-          <ul class="item-list" id="list-other"></ul>
-        </div>
-
-        <div class="supplement">
-          <h3>🍬 补充活动</h3>
-          <div class="supp-row">
-            <input type="text" id="supp-input" maxlength="200" placeholder="输入活动…" autocomplete="off" />
-            <select id="supp-cat" aria-label="分类">
-              <option value="hanabi">火花大会</option>
-              <option value="matsuri">文化祭活动</option>
-              <option value="other">其他景点</option>
-            </select>
-            <button type="button" class="btn" id="supp-add">添加</button>
-          </div>
-        </div>
-      </div>
     </aside>
 
     <footer class="site-footer" id="site-footer">本机 localStorage 备份 · 配置 Supabase 后多人共享</footer>
@@ -940,13 +810,40 @@
 
       var CAT_LABEL = { hanabi: "火花大会", matsuri: "文化祭活动", other: "其他景点" };
 
-      var DEFAULTS = {
-        hanabi: ["新潟 长岡花火大会", "东京 隅田川花火大会"],
-        matsuri: ["京都 祇園祭", "青森 睡魔祭", "大阪 天神祭"],
-        other: ["富士山", "奈良鹿", "环球影城", "江之岛"]
+      var TIME_NOTE_SEP = "｜";
+
+      var DEFAULT_ITINERARY = [
+        { time: "7/8", place: "东京", note: "抵达 · 浅草周边", lat: 35.68, lng: 139.76 },
+        { time: "7/10", place: "东京", note: "隅田川花火大会", lat: 35.71, lng: 139.8 },
+        { time: "7/13", place: "新潟", note: "长岡花火大会", lat: 37.45, lng: 138.85 },
+        { time: "7/16", place: "京都", note: "祇園祭", lat: 35.01, lng: 135.77 },
+        { time: "7/19", place: "大阪", note: "天神祭", lat: 34.69, lng: 135.5 },
+        { time: "7/21", place: "奈良", note: "奈良公园与鹿", lat: 34.39, lng: 135.83 },
+        { time: "7/24", place: "青森", note: "睡魔祭", lat: 40.82, lng: 140.74 },
+        { time: "7/27", place: "静冈", note: "富士山 · 江之岛", lat: 35.17, lng: 138.68 }
+      ];
+
+      var PLACE_REGION_HINTS = {
+        东京: "tokyo",
+        大阪: "osaka",
+        京都: "kyoto",
+        新潟: "niigata",
+        青森: "aomori",
+        奈良: "nara"
+      };
+
+      var REGION_NAMES = {
+        tokyo: { zh: "东京都", ja: "東京都" },
+        osaka: { zh: "大阪府", ja: "大阪府" },
+        kyoto: { zh: "京都府", ja: "京都府" },
+        niigata: { zh: "新潟县", ja: "新潟県" },
+        aomori: { zh: "青森县", ja: "青森県" },
+        nara: { zh: "奈良县", ja: "奈良県" }
       };
 
       var state = loadState();
+      var activeItineraryId = null;
+      var routeMarkersById = {};
       var map;
       var geoLayer;
       var routeLayerGroup = null;
@@ -990,15 +887,79 @@
       var useRemote = true;
       var editingClipId = null;
 
-      function normalizePlannerList(arr) {
+      function formatPinNote(item) {
+        var t = (item.time || "").trim();
+        var n = (item.note || "").trim();
+        if (t && n) return t + TIME_NOTE_SEP + n;
+        return t || n;
+      }
+
+      function parsePinNote(note) {
+        var s = (note || "").trim();
+        var i = s.indexOf(TIME_NOTE_SEP);
+        if (i >= 0) {
+          return { time: s.slice(0, i).trim(), note: s.slice(i + TIME_NOTE_SEP.length).trim() };
+        }
+        return { time: "", note: s };
+      }
+
+      function normalizeItinerary(arr) {
         if (!Array.isArray(arr)) return [];
-        return arr.map(function (x) {
-          if (x && typeof x === "object" && typeof x.text === "string") {
-            return { id: x.id || uid(), text: x.text };
-          }
-          if (typeof x === "string") return { id: uid(), text: x };
-          return { id: uid(), text: String(x) };
+        return arr
+          .map(function (x) {
+            if (!x || typeof x !== "object") return null;
+            var lat = typeof x.lat === "number" && !isNaN(x.lat) ? x.lat : null;
+            var lng = typeof x.lng === "number" && !isNaN(x.lng) ? x.lng : null;
+            if (lat === null || lng === null) {
+              lat = null;
+              lng = null;
+            }
+            return {
+              id: typeof x.id === "string" ? x.id : uid(),
+              time: typeof x.time === "string" ? x.time.slice(0, 40) : "",
+              place: typeof x.place === "string" ? x.place.slice(0, 120) : "",
+              note: typeof x.note === "string" ? x.note.slice(0, 200) : "",
+              lat: lat,
+              lng: lng
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function defaultItineraryFromTemplate() {
+        return DEFAULT_ITINERARY.map(function (d) {
+          return {
+            id: uid(),
+            time: d.time,
+            place: d.place,
+            note: d.note,
+            lat: d.lat,
+            lng: d.lng
+          };
         });
+      }
+
+      function migrateStateObject(o) {
+        if (!o || typeof o !== "object") return { itinerary: defaultItineraryFromTemplate(), infoClippings: [] };
+        var itinerary = normalizeItinerary(o.itinerary);
+        if (!itinerary.length && Array.isArray(o.mapPins) && o.mapPins.length) {
+          itinerary = o.mapPins.map(function (p) {
+            var parsed = parsePinNote(p.note);
+            return {
+              id: p.id || uid(),
+              time: parsed.time,
+              place: p.place || "",
+              note: parsed.note,
+              lat: p.lat,
+              lng: p.lng
+            };
+          });
+        }
+        if (!itinerary.length) itinerary = defaultItineraryFromTemplate();
+        return {
+          itinerary: itinerary,
+          infoClippings: normalizeInfoClippings(o.infoClippings)
+        };
       }
 
       function loadState() {
@@ -1006,46 +967,81 @@
           var raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             var o = JSON.parse(raw);
-            if (o && typeof o === "object") {
-              ["hanabi", "matsuri", "other"].forEach(function (k) {
-                o[k] = normalizePlannerList(o[k]);
-              });
-              if (!Array.isArray(o.mapPins)) o.mapPins = [];
-              o.mapPins = o.mapPins.filter(function (p) {
-                return (
-                  p &&
-                  typeof p.lat === "number" &&
-                  typeof p.lng === "number" &&
-                  !isNaN(p.lat) &&
-                  !isNaN(p.lng)
-                );
-              });
-              o.infoClippings = normalizeInfoClippings(o.infoClippings);
-              return o;
-            }
+            if (o && typeof o === "object") return migrateStateObject(o);
           }
         } catch (e) {}
         try {
           var legacy = localStorage.getItem("jp-2026-summer-interactive-v1");
           if (legacy) {
             var o = JSON.parse(legacy);
-            if (o && typeof o === "object") {
-              ["hanabi", "matsuri", "other"].forEach(function (k) {
-                o[k] = normalizePlannerList(o[k]);
-              });
-              o.mapPins = [];
-              o.infoClippings = [];
-              return o;
-            }
+            if (o && typeof o === "object") return migrateStateObject(o);
           }
         } catch (e2) {}
         return {
-          hanabi: normalizePlannerList(DEFAULTS.hanabi),
-          matsuri: normalizePlannerList(DEFAULTS.matsuri),
-          other: normalizePlannerList(DEFAULTS.other),
-          mapPins: [],
+          itinerary: defaultItineraryFromTemplate(),
           infoClippings: []
         };
+      }
+
+      function itineraryHasCoords(item) {
+        return (
+          item &&
+          typeof item.lat === "number" &&
+          typeof item.lng === "number" &&
+          !isNaN(item.lat) &&
+          !isNaN(item.lng)
+        );
+      }
+
+      function getItineraryItem(id) {
+        for (var i = 0; i < state.itinerary.length; i++) {
+          if (state.itinerary[i].id === id) return state.itinerary[i];
+        }
+        return null;
+      }
+
+      function getItineraryIndex(id) {
+        for (var i = 0; i < state.itinerary.length; i++) {
+          if (state.itinerary[i].id === id) return i;
+        }
+        return -1;
+      }
+
+      function getMappedItinerary() {
+        return state.itinerary.filter(itineraryHasCoords);
+      }
+
+      function guessRegionKey(place) {
+        var p = (place || "").trim();
+        if (!p) return null;
+        var keys = Object.keys(PLACE_REGION_HINTS);
+        for (var i = 0; i < keys.length; i++) {
+          if (p.indexOf(keys[i]) !== -1) return PLACE_REGION_HINTS[keys[i]];
+        }
+        return null;
+      }
+
+      function syncItineraryUi() {
+        renderPinList();
+        refreshRouteOnMap();
+        updateRouteFormMode();
+      }
+
+      function fillRouteFormFromItem(item) {
+        if (!item) return;
+        document.getElementById("route-time").value = item.time || "";
+        document.getElementById("route-place").value = item.place || "";
+        document.getElementById("route-note").value = item.note || "";
+      }
+
+      function updateRouteFormMode() {
+        var btn = document.getElementById("route-add-btn");
+        if (!btn) return;
+        if (activeItineraryId && getItineraryItem(activeItineraryId)) {
+          btn.textContent = "保存并更新地图";
+        } else {
+          btn.textContent = "搜索并添加到地图";
+        }
       }
 
       function normalizeInfoClippings(arr) {
@@ -1142,8 +1138,6 @@
       }
 
       async function cloudRemoteHasAnyRow() {
-        var p = await sbGetJSON("planner_items?select=id&limit=1");
-        if (p.length) return true;
         var m = await sbGetJSON("map_pins?select=id&limit=1");
         if (m.length) return true;
         var c = await sbGetJSON("info_clippings?select=id&limit=1");
@@ -1151,29 +1145,27 @@
       }
 
       async function cloudPullApply() {
-        var planners = await sbGetJSON("planner_items?select=*&order=updated_at.asc");
         var pins = await sbGetJSON("map_pins?select=*&order=sort_order.asc");
         var clips = await sbGetJSON("info_clippings?select=*&order=updated_at.desc");
         cloudApplying = true;
         try {
-          state.hanabi = [];
-          state.matsuri = [];
-          state.other = [];
-          planners.forEach(function (row) {
-            var it = { id: row.id, text: row.body || "" };
-            if (row.category === "hanabi") state.hanabi.push(it);
-            else if (row.category === "matsuri") state.matsuri.push(it);
-            else if (row.category === "other") state.other.push(it);
+          var localNoCoords = state.itinerary.filter(function (it) {
+            return !itineraryHasCoords(it);
           });
-          state.mapPins = pins.map(function (p) {
+          state.itinerary = pins.map(function (p) {
+            var parsed = parsePinNote(p.note);
             return {
               id: p.id,
+              time: parsed.time,
               place: p.place,
-              note: p.note || "",
+              note: parsed.note,
               lat: p.lat,
               lng: p.lng
             };
           });
+          if (localNoCoords.length) {
+            state.itinerary = state.itinerary.concat(localNoCoords);
+          }
           state.infoClippings = clips.map(function (c) {
             return {
               id: c.id,
@@ -1188,19 +1180,13 @@
       }
 
       async function cloudSeedFromCurrentState() {
-        var prow = [];
-        ["hanabi", "matsuri", "other"].forEach(function (cat) {
-          state[cat].forEach(function (item) {
-            prow.push({ id: item.id, category: cat, body: item.text });
-          });
-        });
-        if (prow.length) await sbPostJSON("planner_items", prow, true);
-        if (state.mapPins.length) {
-          var mrows = state.mapPins.map(function (p, i) {
+        var mapped = getMappedItinerary();
+        if (mapped.length) {
+          var mrows = mapped.map(function (p, i) {
             return {
               id: p.id,
               place: p.place,
-              note: p.note || "",
+              note: formatPinNote(p),
               lat: p.lat,
               lng: p.lng,
               sort_order: i
@@ -1223,19 +1209,47 @@
 
       async function cloudSyncAllPinSortOrder() {
         if (!cloudEnabled || cloudApplying) return;
-        for (var i = 0; i < state.mapPins.length; i++) {
-          await sbPatchEq("map_pins", state.mapPins[i].id, { sort_order: i });
+        var mapped = getMappedItinerary();
+        for (var i = 0; i < mapped.length; i++) {
+          await sbPatchEq("map_pins", mapped[i].id, { sort_order: i });
         }
+      }
+
+      function cloudPushItineraryItem(item, sortOrder) {
+        if (!cloudEnabled || cloudApplying || !itineraryHasCoords(item)) return Promise.resolve();
+        return sbPostJSON(
+          "map_pins",
+          [
+            {
+              id: item.id,
+              place: item.place,
+              note: formatPinNote(item),
+              lat: item.lat,
+              lng: item.lng,
+              sort_order: sortOrder
+            }
+          ],
+          true
+        );
+      }
+
+      function cloudPatchItineraryItem(item, sortOrder) {
+        if (!cloudEnabled || cloudApplying || !itineraryHasCoords(item)) return Promise.resolve();
+        return sbPatchEq("map_pins", item.id, {
+          place: item.place,
+          note: formatPinNote(item),
+          lat: item.lat,
+          lng: item.lng,
+          sort_order: sortOrder
+        });
       }
 
       async function cloudPollTick() {
         if (!cloudEnabled || cloudApplying) return;
         try {
           await cloudPullApply();
-          renderLists();
-          renderPinList();
+          syncItineraryUi();
           renderInfoClippings();
-          refreshRouteOnMap();
           saveState();
         } catch (e) {
           console.warn("云端拉取失败", e);
@@ -1267,7 +1281,7 @@
           }
           saveState();
           setCloudStatus("云端已连接 · 约每 12 秒同步他人更新", true);
-          setFooterCloudNote("手帐 / 路线 / 收集夹已与 Supabase 同步（匿名可写，注意滥用风险）");
+          setFooterCloudNote("行程 / 路线 / 收集夹已与 Supabase 同步（匿名可写，注意滥用风险）");
           setInterval(cloudPollTick, 12000);
         } catch (e) {
           cloudEnabled = false;
@@ -1519,8 +1533,10 @@
         if (!map) return;
         ensureRouteGroup();
         routeLayerGroup.clearLayers();
-        if (state.mapPins.length >= 2) {
-          var latlngs = state.mapPins.map(function (p) {
+        routeMarkersById = {};
+        var mapped = getMappedItinerary();
+        if (mapped.length >= 2) {
+          var latlngs = mapped.map(function (p) {
             return [p.lat, p.lng];
           });
           L.polyline(latlngs, {
@@ -1532,7 +1548,7 @@
             lineCap: "round"
           }).addTo(routeLayerGroup);
         }
-        state.mapPins.forEach(function (p, i) {
+        mapped.forEach(function (p, i) {
           var icon = L.divIcon({
             className: "route-pin-icon",
             html: "<span>" + (i + 1) + "</span>",
@@ -1540,88 +1556,120 @@
             iconAnchor: [13, 13]
           });
           var marker = L.marker([p.lat, p.lng], { icon: icon, pane: "routeTopPane" });
-          var title = (i + 1) + ". " + p.place;
+          var title = (p.time ? p.time + " · " : "") + p.place;
           marker.bindPopup(
-            "<strong>" + escapeHtml(title) + "</strong><br>" + escapeHtml(p.note || "")
+            "<strong>" +
+              escapeHtml((i + 1) + ". " + title) +
+              "</strong><br>" +
+              escapeHtml(p.note || "")
           );
+          marker.on("click", function () {
+            selectItinerary(p.id, { pan: false });
+          });
           marker.addTo(routeLayerGroup);
+          routeMarkersById[p.id] = marker;
         });
+        if (activeItineraryId && routeMarkersById[activeItineraryId]) {
+          routeMarkersById[activeItineraryId].setZIndexOffset(1000);
+        }
       }
 
       function renderPinList() {
         var ul = document.getElementById("pin-list");
         ul.innerHTML = "";
-        if (!state.mapPins.length) {
+        if (!state.itinerary.length) {
           var empty = document.createElement("li");
           empty.className = "pin-row";
           empty.style.opacity = "0.55";
-          empty.textContent = "暂无标记，请在上方添加地点。";
+          empty.textContent = "暂无行程，请在上方表单添加。";
           ul.appendChild(empty);
           return;
         }
-        state.mapPins.forEach(function (p, idx) {
+        state.itinerary.forEach(function (p, idx) {
           var li = document.createElement("li");
-          li.className = "pin-row";
+          li.className = "pin-row" + (p.id === activeItineraryId ? " is-active" : "");
           var idxEl = document.createElement("span");
           idxEl.className = "pin-idx";
           idxEl.textContent = idx + 1;
           var body = document.createElement("div");
           body.className = "pin-body";
+          if (p.time) {
+            var tm = document.createElement("div");
+            tm.className = "pin-time";
+            tm.textContent = p.time;
+            body.appendChild(tm);
+          }
           var pl = document.createElement("div");
           pl.className = "pin-place";
-          pl.textContent = p.place;
+          pl.textContent = p.place || "（未填地点）";
           var nt = document.createElement("div");
           nt.className = "pin-note";
-          nt.textContent = p.note || "—";
+          nt.textContent = p.note || (itineraryHasCoords(p) ? "—" : "尚未定位到地图");
           body.appendChild(pl);
           body.appendChild(nt);
           var actions = document.createElement("div");
           actions.className = "pin-actions";
+          var geo = document.createElement("button");
+          geo.type = "button";
+          geo.className = "icon-btn";
+          geo.setAttribute("aria-label", "定位");
+          geo.textContent = "📍";
+          geo.addEventListener("click", function (e) {
+            e.stopPropagation();
+            selectItinerary(p.id);
+            geocodeItineraryById(p.id, true);
+          });
           var up = document.createElement("button");
           up.type = "button";
           up.className = "icon-btn";
           up.setAttribute("aria-label", "上移");
           up.textContent = "↑";
           up.disabled = idx === 0;
-          up.addEventListener("click", function () {
-            movePin(idx, -1);
+          up.addEventListener("click", function (e) {
+            e.stopPropagation();
+            moveItinerary(idx, -1);
           });
           var down = document.createElement("button");
           down.type = "button";
           down.className = "icon-btn";
           down.setAttribute("aria-label", "下移");
           down.textContent = "↓";
-          down.disabled = idx === state.mapPins.length - 1;
-          down.addEventListener("click", function () {
-            movePin(idx, 1);
+          down.disabled = idx === state.itinerary.length - 1;
+          down.addEventListener("click", function (e) {
+            e.stopPropagation();
+            moveItinerary(idx, 1);
           });
           var del = document.createElement("button");
           del.type = "button";
           del.className = "icon-btn";
           del.setAttribute("aria-label", "删除");
           del.textContent = "🗑️";
-          del.addEventListener("click", function () {
-            removePin(p.id);
+          del.addEventListener("click", function (e) {
+            e.stopPropagation();
+            removeItinerary(p.id);
           });
+          actions.appendChild(geo);
           actions.appendChild(up);
           actions.appendChild(down);
           actions.appendChild(del);
           li.appendChild(idxEl);
           li.appendChild(body);
           li.appendChild(actions);
+          li.addEventListener("click", function () {
+            selectItinerary(p.id);
+          });
           ul.appendChild(li);
         });
       }
 
-      function movePin(index, delta) {
+      function moveItinerary(index, delta) {
         var j = index + delta;
-        if (j < 0 || j >= state.mapPins.length) return;
-        var t = state.mapPins[index];
-        state.mapPins[index] = state.mapPins[j];
-        state.mapPins[j] = t;
+        if (j < 0 || j >= state.itinerary.length) return;
+        var t = state.itinerary[index];
+        state.itinerary[index] = state.itinerary[j];
+        state.itinerary[j] = t;
         saveState();
-        renderPinList();
-        refreshRouteOnMap();
+        syncItineraryUi();
         if (cloudEnabled && !cloudApplying) {
           cloudSyncAllPinSortOrder().catch(function (e) {
             console.warn(e);
@@ -1629,13 +1677,13 @@
         }
       }
 
-      function removePin(id) {
-        state.mapPins = state.mapPins.filter(function (p) {
+      function removeItinerary(id) {
+        state.itinerary = state.itinerary.filter(function (p) {
           return p.id !== id;
         });
+        if (activeItineraryId === id) activeItineraryId = null;
         saveState();
-        renderPinList();
-        refreshRouteOnMap();
+        syncItineraryUi();
         if (cloudEnabled && !cloudApplying) {
           sbDeleteEq("map_pins", id)
             .then(function () {
@@ -1647,39 +1695,170 @@
         }
       }
 
-      function addMapPin(place, note, lat, lng) {
-        var pinId = uid();
-        var pNote = (note || "").trim();
-        var pPlace = place.trim();
-        state.mapPins.push({
-          id: pinId,
-          place: pPlace,
-          note: pNote,
-          lat: lat,
-          lng: lng
-        });
+      function updateItineraryField(id, field, value) {
+        var item = getItineraryItem(id);
+        if (!item) return;
+        if (field === "time") item.time = (value || "").trim().slice(0, 40);
+        else if (field === "place") item.place = (value || "").trim().slice(0, 120);
+        else if (field === "note") item.note = (value || "").trim().slice(0, 200);
         saveState();
-        renderPinList();
-        refreshRouteOnMap();
-        if (cloudEnabled && !cloudApplying) {
-          var i = state.mapPins.length - 1;
-          sbPostJSON(
-            "map_pins",
-            [
-              {
-                id: pinId,
-                place: pPlace,
-                note: pNote,
-                lat: lat,
-                lng: lng,
-                sort_order: i
-              }
-            ],
-            true
-          ).catch(function (e) {
+        if (cloudEnabled && !cloudApplying && itineraryHasCoords(item)) {
+          var sortOrder = getMappedItinerary().findIndex(function (x) {
+            return x.id === id;
+          });
+          cloudPatchItineraryItem(item, sortOrder >= 0 ? sortOrder : 0).catch(function (e) {
             console.warn(e);
           });
         }
+      }
+
+      function geocodeItineraryById(id, showStatus) {
+        var item = getItineraryItem(id);
+        if (!item || !(item.place || "").trim()) {
+          if (showStatus) setRouteStatus("请先填写地点。", true);
+          return Promise.resolve(false);
+        }
+        if (showStatus) setRouteStatus("正在搜索地点…", false);
+        return geocodeJapan(item.place.trim())
+          .then(function (arr) {
+            if (!arr || !arr.length) {
+              if (showStatus) setRouteStatus("未找到该地点，请换更具体的名称。", true);
+              return false;
+            }
+            var hit = arr[0];
+            var lat = parseFloat(hit.lat);
+            var lng = parseFloat(hit.lon);
+            if (isNaN(lat) || isNaN(lng)) {
+              if (showStatus) setRouteStatus("坐标无效，请重试。", true);
+              return false;
+            }
+            item.lat = lat;
+            item.lng = lng;
+            saveState();
+            syncItineraryUi();
+            if (cloudEnabled && !cloudApplying) {
+              var sortOrder = getMappedItinerary().findIndex(function (x) {
+                return x.id === id;
+              });
+              cloudPushItineraryItem(item, sortOrder >= 0 ? sortOrder : getMappedItinerary().length - 1).catch(
+                function (e) {
+                  console.warn(e);
+                }
+              );
+            }
+            if (showStatus) setRouteStatus("已定位：" + item.place, false);
+            if (activeItineraryId === id) panToItineraryItem(item);
+            return true;
+          })
+          .catch(function () {
+            if (showStatus) setRouteStatus("检索失败（网络或限流）。请稍后再试。", true);
+            return false;
+          });
+      }
+
+      function addItineraryItem(time, place, note, lat, lng) {
+        var item = {
+          id: uid(),
+          time: (time || "").trim().slice(0, 40),
+          place: (place || "").trim().slice(0, 120),
+          note: (note || "").trim().slice(0, 200),
+          lat: lat,
+          lng: lng
+        };
+        if (isNaN(item.lat) || isNaN(item.lng)) {
+          item.lat = null;
+          item.lng = null;
+        }
+        state.itinerary.push(item);
+        saveState();
+        activeItineraryId = item.id;
+        syncItineraryUi();
+        fillRouteFormFromItem(item);
+        if (cloudEnabled && !cloudApplying && itineraryHasCoords(item)) {
+          cloudPushItineraryItem(item, getMappedItinerary().length - 1).catch(function (e) {
+            console.warn(e);
+          });
+        }
+        return item;
+      }
+
+      function saveItineraryFromRouteForm() {
+        var time = document.getElementById("route-time").value;
+        var place = document.getElementById("route-place").value;
+        var note = document.getElementById("route-note").value;
+        if (!(place || "").trim()) {
+          setRouteStatus("请填写地点名称。", true);
+          return Promise.resolve(false);
+        }
+        if (activeItineraryId && getItineraryItem(activeItineraryId)) {
+          var item = getItineraryItem(activeItineraryId);
+          item.time = (time || "").trim().slice(0, 40);
+          item.place = place.trim().slice(0, 120);
+          item.note = (note || "").trim().slice(0, 200);
+          saveState();
+          return geocodeItineraryById(item.id, true).then(function (ok) {
+            if (ok) fitRouteBounds();
+            return ok;
+          });
+        }
+        setRouteStatus("正在搜索地点…", false);
+        document.getElementById("route-add-btn").disabled = true;
+        return geocodeJapan(place.trim())
+          .then(function (arr) {
+            document.getElementById("route-add-btn").disabled = false;
+            if (!arr || !arr.length) {
+              setRouteStatus("未找到该地点，请换更具体的地址或日文名称。", true);
+              return false;
+            }
+            var hit = arr[0];
+            var lat = parseFloat(hit.lat);
+            var lng = parseFloat(hit.lon);
+            if (isNaN(lat) || isNaN(lng)) {
+              setRouteStatus("坐标无效，请重试。", true);
+              return false;
+            }
+            var label = (hit.display_name && hit.display_name.split(",")[0]) || place.trim();
+            addItineraryItem(time, label, note, lat, lng);
+            setRouteStatus("已添加：" + label, false);
+            document.getElementById("route-time").value = "";
+            document.getElementById("route-place").value = "";
+            document.getElementById("route-note").value = "";
+            activeItineraryId = null;
+            updateRouteFormMode();
+            fitRouteBounds();
+            return true;
+          })
+          .catch(function () {
+            document.getElementById("route-add-btn").disabled = false;
+            setRouteStatus("检索失败（网络或限流）。请稍后再试。", true);
+            return false;
+          });
+      }
+
+      function panToItineraryItem(item) {
+        if (!map || !item || !itineraryHasCoords(item)) return;
+        map.setView([item.lat, item.lng], Math.max(map.getZoom(), 10), { animate: true });
+        var marker = routeMarkersById[item.id];
+        if (marker) marker.openPopup();
+      }
+
+      function selectItinerary(id, opts) {
+        opts = opts || {};
+        activeItineraryId = id;
+        var item = getItineraryItem(id);
+        if (item) fillRouteFormFromItem(item);
+        syncItineraryUi();
+        if (item && itineraryHasCoords(item) && opts.pan !== false) panToItineraryItem(item);
+        var regionKey = item ? guessRegionKey(item.place) : null;
+        if (regionKey && REGION_META[regionKey]) {
+          showRegionPanel({
+            key: regionKey,
+            nameZh: REGION_NAMES[regionKey].zh,
+            nameJa: REGION_NAMES[regionKey].ja
+          });
+        }
+        var pinRow = document.querySelector("#pin-list .pin-row.is-active");
+        if (pinRow) pinRow.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
 
       function geocodeJapan(place) {
@@ -1701,17 +1880,18 @@
         });
       }
 
+
       function onMapReady() {
         routeLayerGroup = null;
         ensureRouteGroup();
-        refreshRouteOnMap();
-        renderPinList();
+        syncItineraryUi();
       }
 
       function fitRouteBounds() {
-        if (!map || !state.mapPins.length) return;
+        var mapped = getMappedItinerary();
+        if (!map || !mapped.length) return;
         var bounds = L.latLngBounds(
-          state.mapPins.map(function (p) {
+          mapped.map(function (p) {
             return [p.lat, p.lng];
           })
         );
@@ -1722,184 +1902,31 @@
         return "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
       }
 
-      function addItem(cat, text) {
-        var t = (text || "").trim();
-        if (!t) return;
-        var nid = uid();
-        state[cat].push({ id: nid, text: t });
-        saveState();
-        renderLists();
-        if (cloudEnabled && !cloudApplying) {
-          sbPostJSON("planner_items", [{ id: nid, category: cat, body: t }], true).catch(function (e) {
-            console.warn(e);
-          });
-        }
-      }
-
-      function removeItem(cat, id) {
-        state[cat] = state[cat].filter(function (x) {
-          return x.id !== id;
-        });
-        saveState();
-        renderLists();
-        if (cloudEnabled && !cloudApplying) {
-          sbDeleteEq("planner_items", id).catch(function (e) {
-            console.warn(e);
-          });
-        }
-      }
-
-      function updateItem(cat, id, text) {
-        var t = (text || "").trim();
-        state[cat].forEach(function (x) {
-          if (x.id === id) x.text = t;
-        });
-        saveState();
-        renderLists();
-        if (cloudEnabled && !cloudApplying) {
-          sbPatchEq("planner_items", id, { body: t }).catch(function (e) {
-            console.warn(e);
-          });
-        }
-      }
-
-      function renderList(cat, elId) {
-        var ul = document.getElementById(elId);
-        ul.innerHTML = "";
-        state[cat].forEach(function (item) {
-          var li = document.createElement("li");
-          li.className = "item-row";
-          var span = document.createElement("span");
-          span.className = "item-text";
-          span.textContent = item.text;
-          span.setAttribute("spellcheck", "false");
-
-          var edit = document.createElement("button");
-          edit.type = "button";
-          edit.className = "icon-btn";
-          edit.setAttribute("aria-label", "编辑");
-          edit.textContent = "✏️";
-          edit.addEventListener("click", function () {
-            span.contentEditable = "true";
-            span.focus();
-            var r = document.createRange();
-            r.selectNodeContents(span);
-            var s = window.getSelection();
-            s.removeAllRanges();
-            s.addRange(r);
-          });
-
-          var del = document.createElement("button");
-          del.type = "button";
-          del.className = "icon-btn";
-          del.setAttribute("aria-label", "删除");
-          del.textContent = "🗑️";
-          del.addEventListener("click", function () {
-            removeItem(cat, item.id);
-          });
-
-          span.addEventListener("dblclick", function () {
-            span.contentEditable = "true";
-            span.focus();
-          });
-
-          span.addEventListener("blur", function () {
-            span.contentEditable = "false";
-            var v = span.textContent.trim();
-            if (!v) removeItem(cat, item.id);
-            else updateItem(cat, item.id, v);
-          });
-
-          span.addEventListener("keydown", function (ev) {
-            if (ev.key === "Enter") {
-              ev.preventDefault();
-              span.blur();
-            }
-          });
-
-          li.appendChild(span);
-          li.appendChild(edit);
-          li.appendChild(del);
-          ul.appendChild(li);
-        });
-      }
-
-      function renderLists() {
-        renderList("hanabi", "list-hanabi");
-        renderList("matsuri", "list-matsuri");
-        renderList("other", "list-other");
-      }
-
-      function setActiveTab(cat) {
-        document.querySelectorAll(".tab").forEach(function (t) {
-          t.setAttribute("aria-selected", t.getAttribute("data-cat") === cat ? "true" : "false");
-        });
-        document.querySelectorAll(".tab-panel").forEach(function (p) {
-          p.classList.remove("active");
-        });
-        document.getElementById("panel-" + cat).classList.add("active");
-      }
-
-      document.querySelectorAll(".tab").forEach(function (tab) {
-        tab.addEventListener("click", function () {
-          setActiveTab(tab.getAttribute("data-cat"));
-        });
-      });
-
-      document.getElementById("supp-add").addEventListener("click", function () {
-        var v = document.getElementById("supp-input").value;
-        var c = document.getElementById("supp-cat").value;
-        addItem(c, v);
-        document.getElementById("supp-input").value = "";
-      });
-
-      document.getElementById("supp-input").addEventListener("keydown", function (e) {
-        if (e.key === "Enter") document.getElementById("supp-add").click();
-      });
-
       document.getElementById("route-add-btn").addEventListener("click", function () {
-        var place = document.getElementById("route-place").value;
-        var note = document.getElementById("route-note").value;
         if (!map) {
           setRouteStatus("地图尚未就绪，请稍后重试。", true);
           return;
         }
-        if (!(place || "").trim()) {
-          setRouteStatus("请填写地点名称。", true);
-          return;
-        }
-        setRouteStatus("正在搜索地点…", false);
-        document.getElementById("route-add-btn").disabled = true;
-        geocodeJapan(place.trim())
-          .then(function (arr) {
-            document.getElementById("route-add-btn").disabled = false;
-            if (!arr || !arr.length) {
-              setRouteStatus("未找到该地点，请换更具体的地址或日文名称。", true);
-              return;
-            }
-            var hit = arr[0];
-            var lat = parseFloat(hit.lat);
-            var lng = parseFloat(hit.lon);
-            if (isNaN(lat) || isNaN(lng)) {
-              setRouteStatus("坐标无效，请重试。", true);
-              return;
-            }
-            var label = (hit.display_name && hit.display_name.split(",")[0]) || place.trim();
-            addMapPin(label, note, lat, lng);
-            setRouteStatus("已添加：" + label, false);
-            document.getElementById("route-place").value = "";
-            document.getElementById("route-note").value = "";
-            fitRouteBounds();
-          })
-          .catch(function () {
-            document.getElementById("route-add-btn").disabled = false;
-            setRouteStatus("检索失败（网络或限流）。请稍后再试。", true);
-          });
+        saveItineraryFromRouteForm();
       });
 
       document.getElementById("route-fit-btn").addEventListener("click", fitRouteBounds);
 
+      document.getElementById("route-time").addEventListener("input", function () {
+        if (!activeItineraryId) return;
+        updateItineraryField(activeItineraryId, "time", this.value);
+        renderPinList();
+      });
+
+      document.getElementById("route-time").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") document.getElementById("route-add-btn").click();
+      });
+
       document.getElementById("route-place").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") document.getElementById("route-add-btn").click();
+      });
+
+      document.getElementById("route-note").addEventListener("keydown", function (e) {
         if (e.key === "Enter") document.getElementById("route-add-btn").click();
       });
 
@@ -1953,14 +1980,33 @@
       }
 
       function addSuggestedFromSelection() {
-        if (!selectedKey) return;
+        if (!selectedKey || !map) return;
         var meta = REGION_META[selectedKey];
         meta.activities.forEach(function (a) {
-          var msg = "添加「" + a.text + "」到「" + CAT_LABEL[a.cat] + "」？";
-          if (window.confirm(msg)) {
-            addItem(a.cat, a.text);
-            setActiveTab(a.cat);
-          }
+          var msg = "将「" + a.text + "」搜索并添加到地图路线？";
+          if (!window.confirm(msg)) return;
+          setRouteStatus("正在搜索地点…", false);
+          geocodeJapan(a.text)
+            .then(function (arr) {
+              if (!arr || !arr.length) {
+                setRouteStatus("未找到该地点，请换更具体的名称。", true);
+                return;
+              }
+              var hit = arr[0];
+              var lat = parseFloat(hit.lat);
+              var lng = parseFloat(hit.lon);
+              if (isNaN(lat) || isNaN(lng)) {
+                setRouteStatus("坐标无效，请重试。", true);
+                return;
+              }
+              var label = (hit.display_name && hit.display_name.split(",")[0]) || a.text;
+              addItineraryItem("", label, CAT_LABEL[a.cat], lat, lng);
+              setRouteStatus("已添加：" + label, false);
+              fitRouteBounds();
+            })
+            .catch(function () {
+              setRouteStatus("检索失败（网络或限流）。请稍后再试。", true);
+            });
         });
       }
 
@@ -2146,10 +2192,8 @@
 
       async function start() {
         await initCloudIfConfigured();
-        renderLists();
-        renderPinList();
+        syncItineraryUi();
         renderInfoClippings();
-        setActiveTab("hanabi");
 
         if (!window.L) {
           showFallbackMessage("Leaflet 未能加载，请检查网络后刷新。");
